@@ -1,21 +1,98 @@
-# Union-Closed Sets Exploration (Frankl’s Conjecture)
+# Union-Closed Families and Frankl’s Conjecture
 
-This repository contains code to explore small instances of **union-closed families** in connection with **Frankl’s Union-Closed Sets Conjecture**.
+This repository contains code for generating and analyzing **union-closed families of sets** in order to study **Frankl’s Union-Closed Sets Conjecture**.
 
-The conjecture asks whether, in any finite union-closed family of sets, there must exist an element that appears in at least half of the sets. Although the statement is elementary, all known proof techniques fail on certain structured families, so small-case computation is useful for understanding what those extremal configurations look like.
+A family \( \mathcal{F} \subseteq 2^{[n]} \) is union-closed if  
+\( A,B \in \mathcal{F} \Rightarrow A \cup B \in \mathcal{F} \).
 
-The code in this repository does the following:
+Frankl’s conjecture states that in any non-empty finite union-closed family, there exists an element that appears in at least half of the sets.
 
-- Enumerates **union-closed families** by generating antichains of minimal sets and taking their union-closure.
-- Uses **isomorphism reduction** (either brute-force or via Nauty/Traces) so that families differing only by relabeling elements are counted once.
-- Computes **element-frequency statistics**, including minimum frequency and variance across elements.
-- Implements basic **shift and compression operators** from the literature and measures how these operations change frequency distributions.
-- Produces reproducible **CSV datasets** and analysis-ready outputs for small universes.
+---
 
-This project is designed for **small parameter regimes** (typically universes of size 4–5 on a laptop) and is meant to generate concrete examples and patterns that can guide theoretical work. It does not attempt to prove the conjecture, but to map the structure of near-extremal families and the behavior of standard compression methods.
+## Goal
 
-**Main references:**
-- D. Reimer, *An entropy approach to the union-closed sets conjecture* (2003)  
-- H. Bruhn and O. Schaudt, *The journey of the union-closed sets conjecture* (survey)  
-- J. Gilmer, *A constant lower bound for union-closed families* (2022)  
-- B. McKay and A. Piperno, *Practical Graph Isomorphism II* (Nauty/Traces)
+The goal of this codebase is to enumerate small union-closed families under constraints, identify families where the maximum element frequency is unusually small, and study how standard compression operations affect those families.
+
+The focus is on **near-extremal families**, meaning families where no element has frequency close to \( |\mathcal{F}|/2 \).
+
+---
+
+## Family generation
+
+Families are generated over universes of size \( n \le 5 \).
+
+The generator enforces:
+- closure under union,
+- inclusion of the empty set,
+- optional size constraints.
+
+Each family is represented as a bitmask over subsets of \([n]\).
+
+---
+
+## Isomorphism removal
+
+Two families that differ only by a permutation of the ground set represent the same structure.
+
+To avoid double counting, each family is converted into a canonical form using **Nauty/Traces** by encoding the incidence structure as a bipartite graph and computing a canonical labeling.
+
+Only one representative from each isomorphism class is kept.
+
+---
+
+## Frequency data
+
+For every family, the following are computed:
+
+- frequency of each element  
+- minimum element frequency  
+- variance of element frequencies  
+- distribution of set sizes  
+
+These are used to detect families where all elements have low frequency relative to \( |\mathcal{F}| \).
+
+---
+
+## Shift and compression operations
+
+The code implements standard shift and compression operations used in union-closed set theory.
+
+For a given family, these operators are applied iteratively, and after each step the element-frequency data is recomputed.
+
+This allows tracking:
+- whether compression increases the minimum element frequency,
+- which families remain resistant to compression,
+- which structural features survive repeated shifting.
+
+---
+
+## Near-extremal catalog
+
+Families are filtered by conditions such as:
+- large \( |\mathcal{F}| \) relative to \( 2^n \),
+- small maximum element frequency,
+- high symmetry or uneven set-size distributions.
+
+These families are stored along with their invariants, giving a reproducible catalog of difficult cases for small universes.
+
+---
+
+## What this repository produces
+
+The pipeline outputs:
+
+- all non-isomorphic union-closed families for small \(n\),
+- element-frequency statistics for each family,
+- compressed versions of each family,
+- families that remain low-frequency after compression.
+
+These datasets provide concrete input for testing hypotheses about why Frankl’s bound holds or where it is tight.
+
+---
+
+## References
+
+- D. Reimer, *An Average Set Size Theorem*  
+- H. Bruhn and O. Schaudt, *The Union-Closed Sets Conjecture* (survey)  
+- J. Gilmer, *A Proof of Frankl’s Conjecture for Large Families*  
+- P. Frankl, original formulation of the conjecture  
